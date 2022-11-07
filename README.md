@@ -1,6 +1,5 @@
 ## test streamlit python
-### Launching the app
-
+### to launch the app, run in the terminal
 
 ```
 streamlit run app.py

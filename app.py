@@ -18,6 +18,7 @@ def load_subwindows() -> list:
     else:
 
         x = []
+
         return x
 
 
@@ -116,16 +117,21 @@ def display_yellow_frame():
 
     st.sidebar.title("Prepare sample")
     uploaded_file = st.sidebar.file_uploader("Load new image", type=["jpg", "jpeg"])
+    frame_slider_features = {"max_x": 5000, "max_y": 5000}
+
     if uploaded_file is not None:
 
         global im_array
+
         im_array = np.asarray(
             Image.open(uploaded_file)
         )  ## Import an image and turn it into a numpy array.
         im_array = im_array[:, :, 1]  ## keeping only the green channel
+        frame_slider_features["max_x"] = im_array.shape[0]
+        frame_slider_features["max_y"] = im_array.shape[1]
 
         original_image_display_location = st.empty()
-        original_image_display_location.image(im_array, width=600)
+        original_image_display_location.image(im_array, width=700)
 
     with st.sidebar.form(key="form1"):
 
@@ -135,17 +141,17 @@ def display_yellow_frame():
             ULFrameX = st.slider(
                 "X",
                 min_value=1,
-                max_value=5000,
+                max_value=frame_slider_features["max_x"],
                 step=1,
-                value=min(500, 5000),
+                value=min(500, frame_slider_features["max_x"]),
             )
         with layout[1]:
             ULFrameY = st.slider(
                 "Y",
                 min_value=1,
-                max_value=5000,
+                max_value=frame_slider_features["max_y"],
                 step=1,
-                value=min(500, 5000),
+                value=min(500, frame_slider_features["max_y"]),
             )
 
         st.markdown("### Lower right frame corner :")
@@ -154,17 +160,17 @@ def display_yellow_frame():
             LRFrameX = st.slider(
                 " X",
                 min_value=1,
-                max_value=5000,
+                max_value=frame_slider_features["max_x"],
                 step=1,
-                value=min(2500, 5000),
+                value=min(2500, frame_slider_features["max_x"]),
             )
         with layout[1]:
             LRFrameY = st.slider(
                 " Y",
                 min_value=1,
-                max_value=5000,
+                max_value=frame_slider_features["max_y"],
                 step=1,
-                value=min(2500, 5000),
+                value=min(2500, frame_slider_features["max_y"]),
             )
 
         ## Instantiation of the dict patch_sizing
@@ -205,8 +211,14 @@ def create_sample():
 
         st.markdown("### Sample size:")
         sample_size = st.slider(
-            "Sample size: ", min_value=1, max_value=10000, step=1, value=1
+            "Sample size: ", min_value=1, max_value=2000, step=1, value=100
         )
+
+        st.markdown("### Epsilon value:")
+        epsilon_slider = st.slider(
+            "", min_value=-4.0, max_value=2.0, step=0.1, value=-2.0
+        )
+        epsilon = 10 ** (epsilon_slider)
 
         ## submit button associated with 'form2'
         submit_button = st.form_submit_button(label="Add to training set")
@@ -226,6 +238,9 @@ def create_sample():
                 x = load_subwindows()
 
             x.extend(my_sample.extract_randomized_subwindows())
+
+            lx = [np.log(subwindows + epsilon) for subwindows in x]
+
             np.save("x.npy", x)
 
 
